@@ -1,0 +1,8 @@
+source [find interface/stlink.cfg]
+source [find target/stm32f1x.cfg]
+
+init
+reset halt
+program build/laurel.elf verify
+reset run
+exit
