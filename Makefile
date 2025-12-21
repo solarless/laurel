@@ -9,13 +9,16 @@ CC = arm-none-eabi-gcc
 LD = arm-none-eabi-gcc
 OBJCOPY = arm-none-eabi-objcopy
 
-CFLAGS = -mcpu=cortex-m3 -mthumb
+CPU = -mcpu=cortex-m3
+
+CFLAGS = $(CPU) -mthumb
 CFLAGS += -std=gnu99 -fno-common -ffunction-sections -fdata-sections -ffile-prefix-map=src/=
 CFLAGS += -Wall -Werror
 CFLAGS += -Iinclude -Ilibopencm3/include
 CFLAGS += -DSTM32F1
 
-LDFLAGS = -nostartfiles -Llibopencm3/lib -specs=nano.specs -Tstm32f103c8.ld -Wl,--gc-sections
+LDFLAGS = $(CPU) -nostartfiles -Llibopencm3/lib -specs=nano.specs
+LDFLAGS += -Tstm32f103c8.ld -Wl,-Map=$(BUILDDIR)/$(TARGET).map,--cref -Wl,--gc-sections -flto
 LDLIBS = -lc -lopencm3_stm32f1
 
 all: $(BUILDDIR)/$(TARGET).elf $(BUILDDIR)/$(TARGET).bin $(BUILDDIR)/$(TARGET).hex
