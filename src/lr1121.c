@@ -5,7 +5,6 @@
 
 #include "lr1121.h"
 #include "pinout.h"
-#include "spi.h"
 
 static void set_nss_low(void)
 {
@@ -22,20 +21,20 @@ void lr1121_wait_busy(void)
     while (gpio_get(LR1121_BUSY_PORT, LR1121_BUSY_PIN));
 }
 
-void lr1121_get_status(uint8_t *stat1, uint8_t *stat2, uint32_t *irq_status)
+void lr1121_get_status(uint8_t *stat1, uint8_t *stat2, uint32_t *irqs)
 {
     lr1121_wait_busy();
 
+    uint8_t buffer[4] = {0x00};
     set_nss_low();
     *stat1 = spi_xfer(LR1121_SPI, 0x01);
     *stat2 = spi_xfer(LR1121_SPI, 0x01);
-    uint8_t buffer[4] = {0x00};
     buffer[0x03] = spi_xfer(LR1121_SPI, 0x00);
     buffer[0x02] = spi_xfer(LR1121_SPI, 0x00);
     buffer[0x01] = spi_xfer(LR1121_SPI, 0x00);
     buffer[0x00] = spi_xfer(LR1121_SPI, 0x00);
-    *irq_status = *(uint32_t *)buffer;
     set_nss_high();
+    *irqs = *(uint32_t *)buffer;
 }
 
 void lr1121_get_version(struct lr1121_version *version)
@@ -103,13 +102,13 @@ void lr1121_get_errors(uint16_t *errors)
 
     lr1121_wait_busy();
 
+    uint8_t buffer[2] = {0x00};
     set_nss_low();
     (void)spi_xfer(LR1121_SPI, 0x00);  // ignore stat1
-    uint8_t buffer[2] = {0x00};
     buffer[0x01] = spi_xfer(LR1121_SPI, 0x00);
     buffer[0x00] = spi_xfer(LR1121_SPI, 0x00);
-    *errors = *(uint16_t *)buffer;
     set_nss_high();
+    *errors = *(uint16_t *)buffer;
 }
 
 void lr1121_clear_errors(void)

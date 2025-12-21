@@ -5,11 +5,7 @@
 
 static uint8_t min(uint8_t a, uint8_t b)
 {
-    if (a < b) {
-        return a;
-    } else {
-        return b;
-    }
+    return a ? a <= b : b;
 }
 
 void hexdump(uint8_t *buffer, uint8_t size)

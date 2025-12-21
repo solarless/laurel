@@ -5,7 +5,7 @@
 
 void lr1121_wait_busy(void);
 
-void lr1121_get_status(uint8_t *stat1, uint8_t *stat2, uint32_t *irq_status);
+void lr1121_get_status(uint8_t *stat1, uint8_t *stat2, uint32_t *irqs);
 
 struct lr1121_version {
     uint8_t hw_version;
@@ -86,14 +86,14 @@ void lr1121_set_dio_as_rf_switch(struct lr1121_dio_rf_switch_config *config);
 
 void lr1121_set_dio_irq_params(uint32_t irq1, uint32_t irq2);
 
-#define LR1121_TCXO_TUNE_1_6V (0x00)
-#define LR1121_TCXO_TUNE_1_7V (0x01)
-#define LR1121_TCXO_TUNE_1_8V (0x02)
-#define LR1121_TCXO_TUNE_2_2V (0x03)
-#define LR1121_TCXO_TUNE_2_4V (0x04)
-#define LR1121_TCXO_TUNE_2_7V (0x05)
-#define LR1121_TCXO_TUNE_3_0V (0x06)
-#define LR1121_TCXO_TUNE_3_3V (0x07)
+#define LR1121_TCXO_TUNE_1_6_V (0x00)
+#define LR1121_TCXO_TUNE_1_7_V (0x01)
+#define LR1121_TCXO_TUNE_1_8_V (0x02)
+#define LR1121_TCXO_TUNE_2_2_V (0x03)
+#define LR1121_TCXO_TUNE_2_4_V (0x04)
+#define LR1121_TCXO_TUNE_2_7_V (0x05)
+#define LR1121_TCXO_TUNE_3_0_V (0x06)
+#define LR1121_TCXO_TUNE_3_3_V (0x07)
 
 void lr1121_set_tcxo_mode(uint8_t tune, uint32_t timeout);
 

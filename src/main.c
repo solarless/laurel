@@ -1,3 +1,4 @@
+#include <libopencm3/cm3/systick.h>
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/stm32/usart.h>
 
@@ -38,18 +39,19 @@ int main(void)
 
     printd("initialized\r\n");
 
+    uint32_t now = systick_get_counter();
+    uint32_t blink_counter = now;
+    uint32_t spit_counter = now;
     gpio_clear(LED1_PORT, LED1_PIN);
     for (;;) {
-        uint32_t now = systick_get_counter();
+        now = systick_get_counter();
 
-        static uint32_t blink_counter = 0;
         if (now - blink_counter >= 500) {
             blink_counter = now;
             gpio_toggle(LED1_PORT, LED1_PIN);
             gpio_toggle(LED2_PORT, LED2_PIN);
         }
 
-        static uint32_t spit_counter = 0;
         if (now - spit_counter >= 5000) {
             spit_counter = now;
             phy_send((uint8_t *)"that shit works", 15);

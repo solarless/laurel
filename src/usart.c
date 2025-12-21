@@ -1,7 +1,6 @@
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/usart.h>
 
-#include "pinout.h"
 #include "usart.h"
 
 void usart_initialize(void)

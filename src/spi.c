@@ -1,8 +1,6 @@
-#include <libopencm3/stm32/gpio.h>
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/spi.h>
 
-#include "pinout.h"
 #include "spi.h"
 
 void spi_initialize(void)

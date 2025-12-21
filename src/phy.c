@@ -72,7 +72,7 @@ static struct lr1121_lora_packet_params current_packet_params = {0x00};
 
 void phy_setup(void)
 {
-    lr1121_set_tcxo_mode(LR1121_TCXO_TUNE_1_8V, 320);
+    lr1121_set_tcxo_mode(LR1121_TCXO_TUNE_1_8_V, 320);
     log_status("lr1121_set_tcxo_mode");
     lr1121_clear_errors();
 

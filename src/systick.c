@@ -3,7 +3,7 @@
 #include "rcc.h"
 #include "systick.h"
 
-static uint32_t volatile milliseconds_counter = 0;
+static uint32_t milliseconds_counter = 0;
 
 void sys_tick_handler(void)
 {
