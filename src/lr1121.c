@@ -1,3 +1,4 @@
+#include <stddef.h>
 #include <stdint.h>
 
 #include <libopencm3/stm32/gpio.h>
@@ -25,16 +26,22 @@ void lr1121_get_status(uint8_t *stat1, uint8_t *stat2, uint32_t *irqs)
 {
     lr1121_wait_busy();
 
-    uint8_t buffer[4] = {0x00};
+    uint8_t buffer[4];
     set_nss_low();
-    *stat1 = spi_xfer(LR1121_SPI, 0x01);
-    *stat2 = spi_xfer(LR1121_SPI, 0x01);
+    if (stat1 != NULL) {
+        *stat1 = spi_xfer(LR1121_SPI, 0x01);
+    }
+    if (stat2 != NULL) {
+        *stat2 = spi_xfer(LR1121_SPI, 0x01);
+    }
     buffer[0x03] = spi_xfer(LR1121_SPI, 0x00);
     buffer[0x02] = spi_xfer(LR1121_SPI, 0x00);
     buffer[0x01] = spi_xfer(LR1121_SPI, 0x00);
     buffer[0x00] = spi_xfer(LR1121_SPI, 0x00);
     set_nss_high();
-    *irqs = *(uint32_t *)buffer;
+    if (irqs != NULL) {
+        *irqs = *(uint32_t *)buffer;
+    }
 }
 
 void lr1121_get_version(struct lr1121_version *version)
@@ -102,7 +109,7 @@ void lr1121_get_errors(uint16_t *errors)
 
     lr1121_wait_busy();
 
-    uint8_t buffer[2] = {0x00};
+    uint8_t buffer[2];
     set_nss_low();
     (void)spi_xfer(LR1121_SPI, 0x00);  // ignore stat1
     buffer[0x01] = spi_xfer(LR1121_SPI, 0x00);
@@ -162,22 +169,40 @@ void lr1121_set_dio_as_rf_switch(struct lr1121_dio_rf_switch_config *config)
     set_nss_high();
 }
 
-void lr1121_set_dio_irq_params(uint32_t irq1, uint32_t irq2)
+void lr1121_set_dio_irq_params(uint32_t irqs1, uint32_t irqs2)
 {
     lr1121_wait_busy();
 
     set_nss_low();
     (void)spi_xfer(LR1121_SPI, 0x01);
     (void)spi_xfer(LR1121_SPI, 0x13);
-    (void)spi_xfer(LR1121_SPI, (irq1 & 0xff000000) >> 24);
-    (void)spi_xfer(LR1121_SPI, (irq1 & 0x00ff0000) >> 16);
-    (void)spi_xfer(LR1121_SPI, (irq1 & 0x0000ff00) >> 8);
-    (void)spi_xfer(LR1121_SPI, (irq1 & 0x000000ff) >> 0);
-    (void)spi_xfer(LR1121_SPI, (irq2 & 0xff000000) >> 24);
-    (void)spi_xfer(LR1121_SPI, (irq2 & 0x00ff0000) >> 16);
-    (void)spi_xfer(LR1121_SPI, (irq2 & 0x0000ff00) >> 8);
-    (void)spi_xfer(LR1121_SPI, (irq2 & 0x000000ff) >> 0);
+    (void)spi_xfer(LR1121_SPI, (irqs1 & 0xff000000) >> 24);
+    (void)spi_xfer(LR1121_SPI, (irqs1 & 0x00ff0000) >> 16);
+    (void)spi_xfer(LR1121_SPI, (irqs1 & 0x0000ff00) >> 8);
+    (void)spi_xfer(LR1121_SPI, (irqs1 & 0x000000ff) >> 0);
+    (void)spi_xfer(LR1121_SPI, (irqs2 & 0xff000000) >> 24);
+    (void)spi_xfer(LR1121_SPI, (irqs2 & 0x00ff0000) >> 16);
+    (void)spi_xfer(LR1121_SPI, (irqs2 & 0x0000ff00) >> 8);
+    (void)spi_xfer(LR1121_SPI, (irqs2 & 0x000000ff) >> 0);
     set_nss_high();
+}
+
+void lr1121_clear_irq(uint32_t clear, uint32_t *pending)
+{
+    lr1121_wait_busy();
+
+    uint8_t buffer[4];
+    set_nss_low();
+    (void)spi_xfer(LR1121_SPI, 0x01);
+    (void)spi_xfer(LR1121_SPI, 0x14);
+    buffer[0x03] = spi_xfer(LR1121_SPI, (clear & 0xff000000) >> 24);
+    buffer[0x02] = spi_xfer(LR1121_SPI, (clear & 0x00ff0000) >> 16);
+    buffer[0x01] = spi_xfer(LR1121_SPI, (clear & 0x0000ff00) >> 8);
+    buffer[0x00] = spi_xfer(LR1121_SPI, (clear & 0x000000ff) >> 0);
+    set_nss_high();
+    if (pending != NULL) {
+        *pending = *(uint32_t *)buffer;
+    }
 }
 
 void lr1121_set_tcxo_mode(uint8_t tune, uint32_t timeout)

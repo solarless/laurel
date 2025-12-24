@@ -84,7 +84,9 @@ void lr1121_set_dio_as_rf_switch(struct lr1121_dio_rf_switch_config *config);
 #define LR1121_IRQ_LORA_RX_TIMESTAMP (0x04000000)
 #define LR1121_IRQ_ALL (0x07e00ffc)
 
-void lr1121_set_dio_irq_params(uint32_t irq1, uint32_t irq2);
+void lr1121_set_dio_irq_params(uint32_t irqs1, uint32_t irqs2);
+
+void lr1121_clear_irq(uint32_t clear, uint32_t *pending);
 
 #define LR1121_TCXO_TUNE_1_6_V (0x00)
 #define LR1121_TCXO_TUNE_1_7_V (0x01)
