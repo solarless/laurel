@@ -1,11 +1,15 @@
 #include <stddef.h>
 #include <stdint.h>
+#include <string.h>
 
 #include <libopencm3/stm32/gpio.h>
 
 #include "lr1121.h"
 #include "phy.h"
 #include "pinout.h"
+
+uint8_t phy_status;
+uint8_t phy_payload_size;
 
 void phy_setup(void)
 {
@@ -23,7 +27,6 @@ void phy_setup(void)
         .ldro = LR1121_LORA_MODULATION_LDRO_DISABLED,
     };
 
-
     lr1121_set_packet_type(LR1121_PACKET_TYPE_LORA);
     lr1121_lora_set_modulation_params(&modulation_params);
 
@@ -36,6 +39,7 @@ void phy_setup(void)
 
     lr1121_set_pa_config(&pa_config);
     lr1121_set_tx_params(14, LR1121_TX_RAMP_TIME_48_US);
+    lr1121_set_rx_boosted(1);
 
     lr1121_set_rf_frequency(868750000);
 
@@ -52,50 +56,81 @@ void phy_setup(void)
     lr1121_set_dio_irq_params(LR1121_IRQ_TX_DONE | LR1121_IRQ_RX_DONE, 0x00);
 }
 
-static void (*sent_handler)(void);
+struct __attribute__((packed)) packet {
+    uint32_t address;
+    uint8_t data[];
+};
 
-void phy_set_sent_handler(void (*handler)(void))
+#define ADDRESS_SIZE (sizeof(((struct packet *)0x00)->address))
+
+#define MAX_FRAME_SIZE (253)
+#define MAX_PAYLOAD_SIZE (MAX_FRAME_SIZE - ADDRESS_SIZE)
+
+static struct lr1121_lora_packet_params packet_params = {
+    .preamble_length = 8,
+    .header_type = LR1121_LORA_PACKET_HEADER_TYPE_EXPLICIT,
+    .payload_length = 0,
+    .crc = LR1121_LORA_PACKET_CRC_ENABLED,
+    .iq = LR1121_LORA_PACKET_IQ_STANDARD,
+};
+
+int8_t phy_send(uint8_t *data, uint8_t size)
 {
-    sent_handler = handler;
-}
+    if (size >= MAX_PAYLOAD_SIZE) {
+        return -1;
+    }
 
-void phy_send(uint8_t *data, uint8_t size)
-{
-    struct lr1121_lora_packet_params packet_params = {
-        .preamble_length = 8,
-        .header_type = LR1121_LORA_PACKET_HEADER_TYPE_EXPLICIT,
-        .payload_length = size,
-        .crc = LR1121_LORA_PACKET_CRC_ENABLED,
-        .iq = LR1121_LORA_PACKET_IQ_STANDARD,
-    };
+    uint8_t buffer[sizeof(struct packet) + size];
+    (void)memset(buffer, 0x00, sizeof(buffer));
+    struct packet *const packet = (struct packet *)buffer;
+    packet->address = 0x11223344;
+    (void)memcpy(packet->data, data, size);
 
-    lr1121_write_buffer8(data, size);
-    lr1121_lora_set_packet_params(&packet_params);
+    struct lr1121_lora_packet_params params;
+    (void)memcpy(&params, &packet_params, sizeof(params));
+    params.payload_length = sizeof(buffer);
+
+    lr1121_write_buffer8(buffer, sizeof(buffer));
+    lr1121_lora_set_packet_params(&params);
     lr1121_set_tx(0x00);
-}
 
-static void (*received_handler)(uint8_t *data, uint8_t size);
-
-void phy_set_received_handler(void (*handler)(uint8_t *data, uint8_t size))
-{
-    received_handler = handler;
+    return 0;
 }
 
 void phy_receive(void)
 {
+    lr1121_lora_set_packet_params(&packet_params);
     lr1121_set_rx(0x00);
 }
 
-#include "debug.h"
-
 static void tx_done_handler(void)
 {
-    printd("tx done\r\n");
+    phy_status |= PHY_STATUS_TX_DONE;
 }
+
+static uint8_t rx_buffer[256];
+static struct packet *const rx_packet = (struct packet *)rx_buffer;
 
 static void rx_done_handler(void)
 {
-    printd("rx done\r\n");
+    uint8_t frame_size;
+    uint8_t offset;
+    lr1121_get_rx_buffer_status(&frame_size, &offset);
+    lr1121_read_buffer8(offset, rx_buffer, frame_size);
+    uint8_t payload_size = frame_size - ADDRESS_SIZE;
+
+    if (rx_packet->address != 0x11223344) {
+        phy_receive();
+        return;
+    }
+
+    phy_status |= PHY_STATUS_RX_DONE;
+    phy_payload_size = payload_size;
+}
+
+void phy_read_buffer(uint8_t *buffer, uint8_t size)
+{
+    (void)memcpy(buffer, rx_buffer, size);
 }
 
 static uint8_t irq_happened;

@@ -28,26 +28,56 @@ int main(void)
     phy_setup();
 
     uint32_t now = systick_get_counter();
-    uint32_t blink_counter = now;
-    uint32_t spit_counter = now;
+    uint32_t sample_counter = now;
+    uint8_t button1_last = 1;
+    uint8_t button2_last = 1;
 
-    gpio_clear(LED1_PORT, LED1_PIN);
+    phy_receive();
+
+    uint8_t buffer[256] = {0x00};
 
     for (;;) {
         phy_process();
 
         now = systick_get_counter();
+        if (now - sample_counter >= 50) {
+            sample_counter = now;
+            uint8_t button1_new = !!gpio_get(BUTTON1_PORT, BUTTON1_PIN);
+            uint8_t button2_new = !!gpio_get(BUTTON2_PORT, BUTTON2_PIN);
 
-        if (now - blink_counter >= 500) {
-            blink_counter = now;
+            if (button1_last && !button1_new) {
+                phy_send((uint8_t *)"\x01", 1);
+            }
+
+            if (button2_last && !button2_new) {
+                phy_send((uint8_t *)"\x02", 1);
+            }
+
+            button1_last = button1_new;
+            button2_last = button2_new;
+
+            continue;
+        }
+
+        if (phy_status & PHY_STATUS_TX_DONE) {
+            phy_status = 0x00;
+            phy_receive();
+        }
+
+        if (!(phy_status & PHY_STATUS_RX_DONE)) {
+            continue;
+        }
+
+        phy_status &= ~PHY_STATUS_RX_DONE;
+        phy_read_buffer(buffer, 5);
+
+        if (buffer[0x04] == 0x01) {
             gpio_toggle(LED1_PORT, LED1_PIN);
+        } else if (buffer[0x04] == 0x02) {
             gpio_toggle(LED2_PORT, LED2_PIN);
         }
 
-        if (now - spit_counter >= 5000) {
-            spit_counter = now;
-            phy_send((uint8_t *)"that shit works", 15);
-        }
+        phy_receive();
     }
 
     return 0xdead;

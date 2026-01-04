@@ -92,7 +92,7 @@ void lr1121_read_buffer8(uint8_t offset, uint8_t *buffer, uint8_t size)
 
     set_nss_low();
     (void)spi_xfer(LR1121_SPI, 0x00);  // ignore stat1
-    for (uint8_t i = 0; i < size; i ++) {
+    for (uint8_t i = 0; i < size; i++) {
         buffer[i] = spi_xfer(LR1121_SPI, 0x00);
     }
     set_nss_high();
@@ -323,6 +323,7 @@ void lr1121_lora_set_packet_params(struct lr1121_lora_packet_params *params)
     (void)spi_xfer(LR1121_SPI, (params->preamble_length & 0xff00) >> 8);
     (void)spi_xfer(LR1121_SPI, (params->preamble_length & 0x00ff) >> 0);
     (void)spi_xfer(LR1121_SPI, params->header_type);
+    (void)spi_xfer(LR1121_SPI, params->payload_length);
     (void)spi_xfer(LR1121_SPI, params->crc);
     (void)spi_xfer(LR1121_SPI, params->iq);
     set_nss_high();
