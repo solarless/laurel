@@ -24,8 +24,8 @@ int main(void)
     spi_initialize();
     usart_initialize();
 
-    core_setup();
     radio_setup();
+    core_setup();
 
     for (;;) {
         core_process();
