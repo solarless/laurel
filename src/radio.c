@@ -2,10 +2,7 @@
 #include <stdint.h>
 #include <string.h>
 
-#include <libopencm3/stm32/gpio.h>
-
 #include "lr1121.h"
-#include "pinout.h"
 #include "radio.h"
 
 struct lr1121_lora_modulation_params radio_modulation_params = {
