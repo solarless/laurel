@@ -6,8 +6,6 @@
 #include "gpio.h"
 #include "pinout.h"
 
-#include "lr1121.h"
-
 void gpio_initialize(void)
 {
     rcc_periph_clock_enable(RCC_GPIOA);
