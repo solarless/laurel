@@ -22,6 +22,23 @@ struct lr1121_lora_packet_params radio_packet_params = {
 
 void radio_setup(void)
 {
+    struct lr1121_pa_config pa_config = {
+        .pa_selection = LR1121_PA_LOW_POWER_PA,
+        .reg_pa_supply = LR1121_PA_SUPPLY_INTERNAL_REGULATOR,
+        .pa_duty_cycle = 0x05,
+        .pa_hp_selection = 0x00,
+    };
+
+    // see docs/e80-900m2213s-user-manual.pdf Chapter 3 Mechanical Dimensions and Pin Definition
+    struct lr1121_dio_rf_switch_config rf_switch_config = {
+        .enable = LR1121_RFSW0 | LR1121_RFSW1,
+        .standby = 0x00,
+        .rx = 0x00,
+        .tx = LR1121_RFSW1,
+        .tx_hp = LR1121_RFSW0,
+        .tx_hf = LR1121_RFSW0 | LR1121_RFSW1,
+    };
+
     lr1121_set_tcxo_mode(LR1121_TCXO_TUNE_1_8_V, 320);
     lr1121_clear_errors();
     lr1121_clear_irq(LR1121_IRQ_ALL, NULL);
@@ -32,27 +49,11 @@ void radio_setup(void)
     lr1121_set_packet_type(LR1121_PACKET_TYPE_LORA);
     lr1121_lora_set_modulation_params(&radio_modulation_params);
 
-    struct lr1121_pa_config pa_config = {
-        .pa_selection = LR1121_PA_LOW_POWER_PA,
-        .reg_pa_supply = LR1121_PA_SUPPLY_INTERNAL_REGULATOR,
-        .pa_duty_cycle = 0x05,
-        .pa_hp_selection = 0x00,
-    };
-
     lr1121_set_pa_config(&pa_config);
     lr1121_set_tx_params(14, LR1121_TX_RAMP_TIME_48_US);
     lr1121_set_rx_boosted(1);
 
     lr1121_set_rf_frequency(868750000);
-
-    struct lr1121_dio_rf_switch_config rf_switch_config = {
-        .enable = LR1121_RFSW0 | LR1121_RFSW1,
-        .standby = 0x00,
-        .rx = 0x00,
-        .tx = LR1121_RFSW1,
-        .tx_hp = LR1121_RFSW0,
-        .tx_hf = LR1121_RFSW0 | LR1121_RFSW1,
-    };
 
     lr1121_set_dio_as_rf_switch(&rf_switch_config);
     lr1121_set_dio_irq_params(LR1121_IRQ_TX_DONE | LR1121_IRQ_RX_DONE, 0x00);

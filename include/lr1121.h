@@ -3,10 +3,6 @@
 
 #include <stdint.h>
 
-void lr1121_wait_busy(void);
-
-void lr1121_get_status(uint8_t *stat1, uint8_t *stat2, uint32_t *irqs);
-
 struct lr1121_version {
     uint8_t hw_version;
     uint8_t use_case;
@@ -47,7 +43,7 @@ void lr1121_calibrate(uint8_t params);
 #define LR1121_IMAGE_CALIBRATION_863 (0xd7)
 #define LR1121_IMAGE_CALIBRATION_870 (0xdb)
 
-void lr1121_calibrate_image(int8_t frequency1, uint8_t frequency2);
+void lr1121_calibrate_image(uint8_t frequency1, uint8_t frequency2);
 
 struct lr1121_dio_rf_switch_config {
     uint8_t enable;

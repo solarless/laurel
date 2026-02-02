@@ -59,6 +59,10 @@ static void timeout_process(void)
 
 static void crlf_process(void)
 {
+    if (data_size < 2) {
+        return;
+    }
+
     if (data[data_size - 2] == '\r' && data[data_size - 1] == '\n') {
         if (received_handler == NULL) {
             return;

@@ -17,49 +17,21 @@ static void set_nss_high(void)
     gpio_set(LR1121_NSS_PORT, LR1121_NSS_PIN);
 }
 
-void lr1121_wait_busy(void)
+static void wait_busy(void)
 {
     while (gpio_get(LR1121_BUSY_PORT, LR1121_BUSY_PIN));
 }
 
-void lr1121_get_status(uint8_t *stat1, uint8_t *stat2, uint32_t *irqs)
-{
-    lr1121_wait_busy();
-
-    uint8_t _stat1;
-    uint8_t _stat2;
-    uint8_t buffer[4];
-
-    set_nss_low();
-    _stat1 = spi_xfer(LR1121_SPI, 0x01);
-    _stat2 = spi_xfer(LR1121_SPI, 0x01);
-    buffer[0x03] = spi_xfer(LR1121_SPI, 0x00);
-    buffer[0x02] = spi_xfer(LR1121_SPI, 0x00);
-    buffer[0x01] = spi_xfer(LR1121_SPI, 0x00);
-    buffer[0x00] = spi_xfer(LR1121_SPI, 0x00);
-    set_nss_high();
-
-    if (stat1 != NULL) {
-        *stat1 = _stat1;
-    }
-    if (stat2 != NULL) {
-        *stat2 = _stat2;
-    }
-    if (irqs != NULL) {
-        *irqs = *(uint32_t *)buffer;
-    }
-}
-
 void lr1121_get_version(struct lr1121_version *version)
 {
-    lr1121_wait_busy();
+    wait_busy();
 
     set_nss_low();
     (void)spi_xfer(LR1121_SPI, 0x01);
     (void)spi_xfer(LR1121_SPI, 0x01);
     set_nss_high();
 
-    lr1121_wait_busy();
+    wait_busy();
 
     set_nss_low();
     (void)spi_xfer(LR1121_SPI, 0x00);  // ignore stat1
@@ -72,7 +44,7 @@ void lr1121_get_version(struct lr1121_version *version)
 
 void lr1121_write_buffer8(uint8_t *data, uint8_t size)
 {
-    lr1121_wait_busy();
+    wait_busy();
 
     set_nss_low();
     (void)spi_xfer(LR1121_SPI, 0x01);
@@ -85,7 +57,7 @@ void lr1121_write_buffer8(uint8_t *data, uint8_t size)
 
 void lr1121_read_buffer8(uint8_t offset, uint8_t *buffer, uint8_t size)
 {
-    lr1121_wait_busy();
+    wait_busy();
 
     set_nss_low();
     (void)spi_xfer(LR1121_SPI, 0x01);
@@ -94,7 +66,7 @@ void lr1121_read_buffer8(uint8_t offset, uint8_t *buffer, uint8_t size)
     (void)spi_xfer(LR1121_SPI, size);
     set_nss_high();
 
-    lr1121_wait_busy();
+    wait_busy();
 
     set_nss_low();
     (void)spi_xfer(LR1121_SPI, 0x00);  // ignore stat1
@@ -106,14 +78,14 @@ void lr1121_read_buffer8(uint8_t offset, uint8_t *buffer, uint8_t size)
 
 void lr1121_get_errors(uint16_t *errors)
 {
-    lr1121_wait_busy();
+    wait_busy();
 
     set_nss_low();
     (void)spi_xfer(LR1121_SPI, 0x01);
     (void)spi_xfer(LR1121_SPI, 0x0d);
     set_nss_high();
 
-    lr1121_wait_busy();
+    wait_busy();
 
     uint8_t buffer[2];
     set_nss_low();
@@ -126,7 +98,7 @@ void lr1121_get_errors(uint16_t *errors)
 
 void lr1121_clear_errors(void)
 {
-    lr1121_wait_busy();
+    wait_busy();
 
     set_nss_low();
     (void)spi_xfer(LR1121_SPI, 0x01);
@@ -136,7 +108,7 @@ void lr1121_clear_errors(void)
 
 void lr1121_calibrate(uint8_t params)
 {
-    lr1121_wait_busy();
+    wait_busy();
 
     set_nss_low();
     (void)spi_xfer(LR1121_SPI, 0x01);
@@ -145,9 +117,9 @@ void lr1121_calibrate(uint8_t params)
     set_nss_high();
 }
 
-void lr1121_calibrate_image(int8_t frequency1, uint8_t frequency2)
+void lr1121_calibrate_image(uint8_t frequency1, uint8_t frequency2)
 {
-    lr1121_wait_busy();
+    wait_busy();
 
     set_nss_low();
     (void)spi_xfer(LR1121_SPI, 0x01);
@@ -159,7 +131,7 @@ void lr1121_calibrate_image(int8_t frequency1, uint8_t frequency2)
 
 void lr1121_set_dio_as_rf_switch(struct lr1121_dio_rf_switch_config *config)
 {
-    lr1121_wait_busy();
+    wait_busy();
 
     set_nss_low();
     (void)spi_xfer(LR1121_SPI, 0x01);
@@ -177,7 +149,7 @@ void lr1121_set_dio_as_rf_switch(struct lr1121_dio_rf_switch_config *config)
 
 void lr1121_set_dio_irq_params(uint32_t irqs1, uint32_t irqs2)
 {
-    lr1121_wait_busy();
+    wait_busy();
 
     set_nss_low();
     (void)spi_xfer(LR1121_SPI, 0x01);
@@ -195,7 +167,7 @@ void lr1121_set_dio_irq_params(uint32_t irqs1, uint32_t irqs2)
 
 void lr1121_clear_irq(uint32_t clear, uint32_t *pending)
 {
-    lr1121_wait_busy();
+    wait_busy();
 
     uint8_t buffer[4];
 
@@ -215,7 +187,7 @@ void lr1121_clear_irq(uint32_t clear, uint32_t *pending)
 
 void lr1121_set_tcxo_mode(uint8_t tune, uint32_t timeout)
 {
-    lr1121_wait_busy();
+    wait_busy();
 
     set_nss_low();
     (void)spi_xfer(LR1121_SPI, 0x01);
@@ -229,7 +201,7 @@ void lr1121_set_tcxo_mode(uint8_t tune, uint32_t timeout)
 
 void lr1121_set_standby(uint8_t config)
 {
-    lr1121_wait_busy();
+    wait_busy();
 
     set_nss_low();
     (void)spi_xfer(LR1121_SPI, 0x01);
@@ -240,14 +212,14 @@ void lr1121_set_standby(uint8_t config)
 
 void lr1121_get_rx_buffer_status(uint8_t *size, uint8_t *offset)
 {
-    lr1121_wait_busy();
+    wait_busy();
 
     set_nss_low();
     (void)spi_xfer(LR1121_SPI, 0x02);
     (void)spi_xfer(LR1121_SPI, 0x03);
     set_nss_high();
 
-    lr1121_wait_busy();
+    wait_busy();
 
     set_nss_low();
     (void)spi_xfer(LR1121_SPI, 0x00);  // ignore stat1
@@ -258,7 +230,7 @@ void lr1121_get_rx_buffer_status(uint8_t *size, uint8_t *offset)
 
 void lr1121_set_rx(uint32_t timeout)
 {
-    lr1121_wait_busy();
+    wait_busy();
 
     set_nss_low();
     (void)spi_xfer(LR1121_SPI, 0x02);
@@ -271,7 +243,7 @@ void lr1121_set_rx(uint32_t timeout)
 
 void lr1121_set_tx(uint32_t timeout)
 {
-    lr1121_wait_busy();
+    wait_busy();
 
     set_nss_low();
     (void)spi_xfer(LR1121_SPI, 0x02);
@@ -284,7 +256,7 @@ void lr1121_set_tx(uint32_t timeout)
 
 void lr1121_set_rf_frequency(uint32_t frequency)
 {
-    lr1121_wait_busy();
+    wait_busy();
 
     set_nss_low();
     (void)spi_xfer(LR1121_SPI, 0x02);
@@ -298,7 +270,7 @@ void lr1121_set_rf_frequency(uint32_t frequency)
 
 void lr1121_set_packet_type(uint8_t type)
 {
-    lr1121_wait_busy();
+    wait_busy();
 
     set_nss_low();
     (void)spi_xfer(LR1121_SPI, 0x02);
@@ -309,7 +281,7 @@ void lr1121_set_packet_type(uint8_t type)
 
 void lr1121_lora_set_modulation_params(struct lr1121_lora_modulation_params *params)
 {
-    lr1121_wait_busy();
+    wait_busy();
 
     set_nss_low();
     (void)spi_xfer(LR1121_SPI, 0x02);
@@ -323,7 +295,7 @@ void lr1121_lora_set_modulation_params(struct lr1121_lora_modulation_params *par
 
 void lr1121_lora_set_packet_params(struct lr1121_lora_packet_params *params)
 {
-    lr1121_wait_busy();
+    wait_busy();
 
     set_nss_low();
     (void)spi_xfer(LR1121_SPI, 0x02);
@@ -339,7 +311,7 @@ void lr1121_lora_set_packet_params(struct lr1121_lora_packet_params *params)
 
 void lr1121_set_tx_params(uint8_t power, uint8_t ramp_time)
 {
-    lr1121_wait_busy();
+    wait_busy();
 
     set_nss_low();
     (void)spi_xfer(LR1121_SPI, 0x02);
@@ -351,7 +323,7 @@ void lr1121_set_tx_params(uint8_t power, uint8_t ramp_time)
 
 void lr1121_set_pa_config(struct lr1121_pa_config *config)
 {
-    lr1121_wait_busy();
+    wait_busy();
 
     set_nss_low();
     (void)spi_xfer(LR1121_SPI, 0x02);
@@ -365,7 +337,7 @@ void lr1121_set_pa_config(struct lr1121_pa_config *config)
 
 void lr1121_set_rx_boosted(uint8_t boosted)
 {
-    lr1121_wait_busy();
+    wait_busy();
 
     set_nss_low();
     (void)spi_xfer(LR1121_SPI, 0x02);
