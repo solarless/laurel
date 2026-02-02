@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
@@ -25,18 +26,18 @@ enum {
 
 static uint8_t mode;
 
-static uint8_t switch_sequence_started;
-static uint32_t switch_sequence_timeout_tick;
+static bool switch_sequence_started;
+static uint32_t switch_sequence_start_timestamp;
 
 #define SWITCH_SEQUENCE_TIMEOUT_MS (1000)
 
 static void transparent_serial_received_handler(uint8_t *data, uint32_t size)
 {
-    switch_sequence_started = 0;
+    switch_sequence_started = false;
 
     if (memcmp(data, "+++", 3) == 0) {
-        switch_sequence_started = 1;
-        switch_sequence_timeout_tick = systick_get_counter();
+        switch_sequence_started = true;
+        switch_sequence_start_timestamp = systick_get_counter();
         return;
     }
 
@@ -66,8 +67,8 @@ static void transparent_process(void)
 {
     if (switch_sequence_started) {
         uint32_t now = systick_get_counter();
-        if (now - switch_sequence_timeout_tick >= SWITCH_SEQUENCE_TIMEOUT_MS) {
-            switch_sequence_started = 0;
+        if (now - switch_sequence_start_timestamp >= SWITCH_SEQUENCE_TIMEOUT_MS) {
+            switch_sequence_started = false;
             enter_commmand_mode();
         }
     }
