@@ -35,7 +35,7 @@ static void transparent_serial_received_handler(uint8_t *data, uint32_t size)
 {
     switch_sequence_started = false;
 
-    if (memcmp(data, "+++", 3) == 0) {
+    if (size == 3 && memcmp(data, "+++", 3) == 0) {
         switch_sequence_started = true;
         switch_sequence_start_timestamp = systick_get_counter();
         return;
