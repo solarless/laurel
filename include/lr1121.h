@@ -198,13 +198,6 @@ struct lr1121_pa_config {
     uint8_t pa_hp_selection;
 };
 
-#define LR1121_PA_LOW_POWER_PA (0x00)
-#define LR1121_PA_HIGH_POWER_PA (0x01)
-#define LR1121_PA_HIGH_FREQUENCY_PA (0x02)
-
-#define LR1121_PA_SUPPLY_INTERNAL_REGULATOR (0x00)
-#define LR1121_PA_SUPPLY_VBAT (0x01)
-
 void lr1121_set_pa_config(struct lr1121_pa_config *config);
 
 void lr1121_set_rx_boosted(uint8_t boosted);

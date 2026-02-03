@@ -35,7 +35,7 @@ static void transparent_serial_received_handler(uint8_t *data, uint32_t size)
 {
     switch_sequence_started = false;
 
-    if (size == 3 && memcmp(data, "+++", 3) == 0) {
+    if (size == 5 && memcmp(data, "+++\r\n", 3) == 0) {
         switch_sequence_started = true;
         switch_sequence_start_timestamp = systick_get_counter();
         return;
@@ -112,6 +112,7 @@ static void command_serial_received_handler(uint8_t *data, uint32_t size)
             return;
         }
         radio_modulation_params.spreading_factor = sf;
+        printf("\r\nOK\r\n");
     }
 
     // Bandwidth
@@ -134,6 +135,7 @@ static void command_serial_received_handler(uint8_t *data, uint32_t size)
             return;
         }
         radio_modulation_params.bandwidth = bw;
+        printf("\r\nOK\r\n");
     }
 
     // Coding rate
@@ -156,6 +158,7 @@ static void command_serial_received_handler(uint8_t *data, uint32_t size)
             return;
         }
         radio_modulation_params.coding_rate = cr;
+        printf("\r\nOK\r\n");
     }
 
     // LDRO
@@ -178,6 +181,7 @@ static void command_serial_received_handler(uint8_t *data, uint32_t size)
             return;
         }
         radio_modulation_params.ldro = ldro;
+        printf("\r\nOK\r\n");
     }
 
     // CRC
@@ -200,6 +204,7 @@ static void command_serial_received_handler(uint8_t *data, uint32_t size)
             return;
         }
         radio_packet_params.crc = crc;
+        printf("\r\nOK\r\n");
     }
 
     // IQ
@@ -222,6 +227,7 @@ static void command_serial_received_handler(uint8_t *data, uint32_t size)
             return;
         }
         radio_packet_params.iq = iq;
+        printf("\r\nOK\r\n");
     }
 
     else {
@@ -235,6 +241,8 @@ static void enter_commmand_mode(void)
 
     serial_receive_crlf(command_serial_received_handler);
     radio_idle();
+
+    printf("Entered command mode\r\n");
 }
 
 static void command_process(void)
