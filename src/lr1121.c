@@ -1,11 +1,12 @@
-#include <stddef.h>
-#include <stdint.h>
+#include "lr1121.h"
+
+#include "platform.h"
 
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/stm32/spi.h>
 
-#include "lr1121.h"
-#include "pinout.h"
+#include <stddef.h>
+#include <stdint.h>
 
 static void set_nss_low(void)
 {
@@ -20,26 +21,6 @@ static void set_nss_high(void)
 static void wait_busy(void)
 {
     while (gpio_get(LR1121_BUSY_PORT, LR1121_BUSY_PIN));
-}
-
-void lr1121_get_version(struct lr1121_version *version)
-{
-    wait_busy();
-
-    set_nss_low();
-    (void)spi_xfer(LR1121_SPI, 0x01);
-    (void)spi_xfer(LR1121_SPI, 0x01);
-    set_nss_high();
-
-    wait_busy();
-
-    set_nss_low();
-    (void)spi_xfer(LR1121_SPI, 0x00);  // ignore stat1
-    version->hw_version = spi_xfer(LR1121_SPI, 0x00);
-    version->use_case = spi_xfer(LR1121_SPI, 0x00);
-    version->fw_major = spi_xfer(LR1121_SPI, 0x00);
-    version->fw_minor = spi_xfer(LR1121_SPI, 0x00);
-    set_nss_high();
 }
 
 void lr1121_write_buffer8(uint8_t *data, uint8_t size)

@@ -1,19 +1,18 @@
-#ifndef _PINOUT_H
-#define _PINOUT_H
+#pragma once
 
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/stm32/spi.h>
 #include <libopencm3/stm32/usart.h>
 
-/* ======== Buttons definitions ======== */
+/* ======== Buttons ======== */
 
-#define BUTTON1_PORT (GPIOB)
-#define BUTTON1_PIN (GPIO15)
+#define K1_PORT (GPIOB)
+#define K1_PIN (GPIO15)
 
-#define BUTTON2_PORT (GPIOB)
-#define BUTTON2_PIN (GPIO14)
+#define K2_PORT (GPIOB)
+#define K2_PIN (GPIO14)
 
-/* ======== LEDs definitions ======== */
+/* ======== LEDs  ======== */
 
 #define LED1_PORT (GPIOB)
 #define LED1_PIN (GPIO13)
@@ -21,17 +20,17 @@
 #define LED2_PORT (GPIOB)
 #define LED2_PIN (GPIO12)
 
-/* ======== CH340X definitions  ======== */
+/* ======== CH340X ======== */
 
-#define CH340X_TXD_PORT (GPIOA)  // USART1_RX
+#define CH340X_TXD_PORT (GPIOA) /* RX on my side */
 #define CH340X_TXD_PIN (GPIO10)
 
-#define CH340X_RXD_PORT (GPIOA)  // USART1_TX
+#define CH340X_RXD_PORT (GPIOA) /* TX on my side */
 #define CH340X_RXD_PIN (GPIO9)
 
 #define CH340X_USART (USART1)
 
-/* ======== LR1121 definitions ======== */
+/* ======== LR1121 ======== */
 
 #define LR1121_NRESET_PORT (GPIOB)
 #define LR1121_NRESET_PIN (GPIO0)
@@ -61,5 +60,3 @@
 #define LR1121_BUSY_PIN (GPIO3)
 
 #define LR1121_SPI (SPI1)
-
-#endif

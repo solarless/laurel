@@ -1,16 +1,6 @@
-#ifndef _LR1121_H
-#define _LR1121_H
+#pragma once
 
 #include <stdint.h>
-
-struct lr1121_version {
-    uint8_t hw_version;
-    uint8_t use_case;
-    uint8_t fw_major;
-    uint8_t fw_minor;
-};
-
-void lr1121_get_version(struct lr1121_version *version);
 
 void lr1121_write_buffer8(uint8_t *data, uint8_t size);
 
@@ -201,5 +191,3 @@ struct lr1121_pa_config {
 void lr1121_set_pa_config(struct lr1121_pa_config *config);
 
 void lr1121_set_rx_boosted(uint8_t boosted);
-
-#endif
