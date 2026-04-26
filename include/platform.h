@@ -4,6 +4,8 @@
 #include <libopencm3/stm32/spi.h>
 #include <libopencm3/stm32/usart.h>
 
+#include <stdint.h>
+
 /* ======== Buttons ======== */
 
 #define K1_PORT (GPIOB)
@@ -22,10 +24,10 @@
 
 /* ======== CH340X ======== */
 
-#define CH340X_TXD_PORT (GPIOA) /* RX on my side */
+#define CH340X_TXD_PORT (GPIOA)
 #define CH340X_TXD_PIN (GPIO10)
 
-#define CH340X_RXD_PORT (GPIOA) /* TX on my side */
+#define CH340X_RXD_PORT (GPIOA)
 #define CH340X_RXD_PIN (GPIO9)
 
 #define CH340X_USART (USART1)
@@ -60,3 +62,7 @@
 #define LR1121_BUSY_PIN (GPIO3)
 
 #define LR1121_SPI (SPI1)
+
+extern uint32_t systick;
+
+void platform_setup(void);

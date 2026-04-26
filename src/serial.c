@@ -1,98 +1,107 @@
-#include <stddef.h>
+#include "serial.h"
+
+#include "led.h"
+#include "platform.h"
+#include "radio.h"
 
 #include <libopencm3/stm32/usart.h>
 
-#include "pinout.h"
-#include "serial.h"
-#include "systick.h"
+#include <stdbool.h>
+#include <stdint.h>
+#include <string.h>
 
-void serial_send(uint8_t *data, uint32_t size)
+#define BUFFER_SIZE (1024)
+
+#define FEND (0xc0)
+#define FESC (0xdb)
+#define TFEND (0xdc)
+#define TFESC (0xdd)
+
+static enum {
+    STATE_GARBAGE,
+    STATE_FRAME,
+    STATE_DATA,
+    STATE_ESCAPE,
+} state;
+
+static uint8_t txbuffer[BUFFER_SIZE];
+static uint8_t rxdata[BUFFER_SIZE];
+static uint8_t rxcommand;
+static uint16_t rxsize;
+static bool rxdone;
+
+void handle_uart_rx(void);
+
+void serial_send(uint8_t *data, uint16_t length)
 {
-    for (uint32_t i = 0; i < size; i++) {
-        usart_send_blocking(CH340X_USART, data[i]);
-    }
-}
-
-enum {
-    MODE_TIMEOUT,
-    MODE_CRLF,
-};
-
-static uint8_t data[1024];
-static uint16_t data_size;
-
-static uint8_t byte_received_flag;
-static uint32_t byte_received_timestamp;
-
-static uint8_t mode;
-static serial_received_handler received_handler;
-
-void serial_receive_timeout(serial_received_handler handler)
-{
-    data_size = 0;
-    mode = MODE_TIMEOUT;
-    received_handler = handler;
-}
-
-void serial_receive_crlf(serial_received_handler handler)
-{
-    data_size = 0;
-    mode = MODE_CRLF;
-    received_handler = handler;
-}
-
-#define FRAME_TIMEOUT_MS (10)
-
-static void timeout_process(void)
-{
-    uint32_t now = systick_get_counter();
-    if (now - byte_received_timestamp >= FRAME_TIMEOUT_MS) {
-        if (received_handler == NULL) {
-            return;
+    int p = 0x00;
+    txbuffer[p++] = FEND;
+    txbuffer[p++] = 0x00;  /* Data frame */
+    for (int i = 0; i < length; i++) {
+        if (data[i] == FEND) {
+            txbuffer[p++] = FESC;
+            txbuffer[p++] = TFEND;
+        } else if (data[i] == FESC) {
+            txbuffer[p++] = FESC;
+            txbuffer[p++] = TFESC;
+        } else {
+            txbuffer[p++] = data[i];
         }
-
-        received_handler(data, data_size);
-        data_size = 0;
-        byte_received_flag = 0;
     }
-}
+    txbuffer[p++] = FEND;
 
-static void crlf_process(void)
-{
-    if (data_size < 2) {
-        return;
-    }
-
-    if (data[data_size - 2] == '\r' && data[data_size - 1] == '\n') {
-        if (received_handler == NULL) {
-            return;
-        }
-
-        received_handler(data, data_size - 2);
-        data_size = 0;
-        byte_received_flag = 0;
-    }
+    for (int i = 0; i < p; i++)
+        usart_send_blocking(CH340X_USART, txbuffer[i]);
 }
 
 void serial_process(void)
 {
-    if (!byte_received_flag) {
+    if (!rxdone)
         return;
-    }
 
-    switch (mode) {
-    case MODE_TIMEOUT:
-        timeout_process();
-        break;
-    case MODE_CRLF:
-        crlf_process();
-        break;
-    }
+    if (rxcommand == 0x00)
+        radio_send(rxdata, rxsize);
+    rxsize = 0;
+    rxdone = false;
 }
 
-void usart1_isr(void)
+void handle_uart_rx(void)
 {
-    byte_received_flag = 1;
-    byte_received_timestamp = systick_get_counter();
-    data[data_size++] = usart_recv(CH340X_USART);
+    uint8_t byte = usart_recv(CH340X_USART);
+
+    switch (state) {
+    case STATE_GARBAGE:
+        if (byte == FEND)
+            state = STATE_FRAME;
+        break;
+
+    case STATE_FRAME:
+        rxcommand = byte;
+        state = STATE_DATA;
+        break;
+
+    case STATE_DATA:
+        if (byte == FEND) {
+            rxdone = true;
+            state = STATE_GARBAGE;
+        } else if (byte == FESC) {
+            state = STATE_ESCAPE;
+        } else {
+            rxdata[rxsize++] = byte;
+        }
+        break;
+
+    case STATE_ESCAPE:
+        if (byte == TFEND) {
+            rxdata[rxsize++] = FEND;
+            state = STATE_DATA;
+        } else if (byte == TFESC) {
+            rxdata[rxsize++] = FESC;
+            state = STATE_DATA;
+        } else {
+            rxsize = 0;
+            state = STATE_GARBAGE;
+        }
+        break;
+    }
 }
