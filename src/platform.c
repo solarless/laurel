@@ -57,7 +57,7 @@ void platform_setup(void)
     gpio_set(LR1121_NRESET_PORT, LR1121_NRESET_PIN);
     gpio_set(LR1121_NSS_PORT, LR1121_NSS_PIN);
 
-    usart_set_baudrate(USART1, 921600);
+    usart_set_baudrate(USART1, 115200);
     usart_set_mode(USART1, USART_MODE_TX_RX);
     usart_enable_rx_interrupt(USART1);
     usart_enable(USART1);

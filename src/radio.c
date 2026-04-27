@@ -10,25 +10,25 @@
 #include <stdint.h>
 
 struct lr1121_lora_modulation_params radio_modulation_params = {
-    .spreading_factor = LR1121_LORA_SPREADING_FACTOR_8,
-    .bandwidth = LR1121_LORA_BANDWIDTH_62,
+    .spreading_factor = LR1121_LORA_SPREADING_FACTOR_5,
+    .bandwidth = LR1121_LORA_BANDWIDTH_250,
     .coding_rate = LR1121_LORA_CODING_RATE_SHORT_4_6,
     .ldro_enabled = false,
 };
 
 struct lr1121_lora_packet_params radio_packet_params = {
-    .preamble_length = 8,
+    .preamble_length = 12,
     .header_type = LR1121_LORA_HEADER_TYPE_EXPLICIT,
     .payload_length = 0,
     .crc_enabled = true,
     .iq_inverted = false,
 };
 
-/* Low power PA 14 dBm, see docs/lr1121-user-manual.pdf Table 9-1 */
+/* Low power PA 10 dBm, see docs/lr1121-user-manual.pdf Table 9-1 */
 struct lr1121_pa_config radio_pa_config = {
     .pa = 0x00,
     .pa_power_source = 0x00,
-    .pa_duty_cycle = 0x05,
+    .pa_duty_cycle = 0x01,
     .hp_pa_size = 0x00,
 };
 
@@ -63,11 +63,11 @@ void radio_setup(void)
     lr1121_lora_set_modulation_params(&radio_modulation_params);
 
     lr1121_set_pa_config(&radio_pa_config);
-    lr1121_set_tx_params(14, LR1121_RAMP_TIME_48_US);
+    lr1121_set_tx_params(10, LR1121_RAMP_TIME_48_US);
     lr1121_set_rx_boosted(true);
 
-    /* Center of 868.7-869.2 MHz band */
-    lr1121_set_rf_frequency(868950000);
+    /* Bandwidth is half of 868.7-869.2 band, occupy the lower half */
+    lr1121_set_rf_frequency(868825000);
 
     lr1121_set_dio_as_rf_switch(&rf_switch_config);
     lr1121_set_dio_irq_params(LR1121_IRQ_TX_DONE | LR1121_IRQ_RX_DONE, 0x00);
@@ -110,7 +110,7 @@ static void handle_tx_done(void)
 static void handle_rx_done(void)
 {
     led_blink(LED1);
-    uint8_t buffer[256];
+    uint8_t buffer[255];
     uint8_t length;
     uint8_t offset;
     lr1121_get_rx_buffer_status(&length, &offset);
