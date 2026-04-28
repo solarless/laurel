@@ -6,6 +6,8 @@
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/stm32/rcc.h>
 
+#include <stdint.h>
+
 uint32_t systick;
 
 void sys_tick_handler(void);

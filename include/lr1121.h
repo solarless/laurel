@@ -158,7 +158,8 @@ void lr1121_set_rx(uint32_t timeout);
 void lr1121_set_tx(uint32_t timeout);
 void lr1121_set_rf_frequency(uint32_t frequency);
 void lr1121_set_packet_type(uint8_t type);
-void lr1121_lora_set_modulation_params(struct lr1121_lora_modulation_params *params);
+void lr1121_lora_set_modulation_params(
+    struct lr1121_lora_modulation_params *params);
 void lr1121_lora_set_packet_params(struct lr1121_lora_packet_params *params);
 void lr1121_set_tx_params(uint8_t power, uint8_t ramp_time);
 void lr1121_set_pa_config(struct lr1121_pa_config *config);

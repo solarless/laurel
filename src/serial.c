@@ -8,7 +8,6 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include <string.h>
 
 #define BUFFER_SIZE (1024)
 

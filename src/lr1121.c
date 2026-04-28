@@ -179,7 +179,7 @@ void lr1121_set_standby(uint8_t config)
     set_nss_high();
 }
 
-void lr1121_get_rx_buffer_status(uint8_t *size, uint8_t *offset)
+void lr1121_get_rx_buffer_status(uint8_t *length, uint8_t *offset)
 {
     wait_busy();
 
@@ -192,7 +192,7 @@ void lr1121_get_rx_buffer_status(uint8_t *size, uint8_t *offset)
 
     set_nss_low();
     (void)spi_xfer(LR1121_SPI, 0x00);
-    *size = spi_xfer(LR1121_SPI, 0x00);
+    *length = spi_xfer(LR1121_SPI, 0x00);
     *offset = spi_xfer(LR1121_SPI, 0x00);
     set_nss_high();
 }
@@ -248,7 +248,8 @@ void lr1121_set_packet_type(uint8_t type)
     set_nss_high();
 }
 
-void lr1121_lora_set_modulation_params(struct lr1121_lora_modulation_params *params)
+void lr1121_lora_set_modulation_params(
+    struct lr1121_lora_modulation_params *params)
 {
     wait_busy();
 
