@@ -11,14 +11,14 @@ OBJCOPY = arm-none-eabi-objcopy
 
 CPU = -mcpu=cortex-m3
 
-CFLAGS = $(CPU) -mthumb
-CFLAGS += -std=gnu99 -fno-common -ffunction-sections -fdata-sections -ffile-prefix-map=src/=
-CFLAGS += -Wall -Werror
+CFLAGS = $(CPU) -mthumb -std=gnu99
+CFLAGS += -fno-common -ffunction-sections -fdata-sections -Wall -Werror
 CFLAGS += -Iinclude -Ilibopencm3/include
-CFLAGS += -DSTM32F1
+CFLAGS += -DSTM32F1 -ffile-prefix-map=src/=
 
 LDFLAGS = $(CPU) -nostartfiles -Llibopencm3/lib -specs=nano.specs
-LDFLAGS += -Tstm32f103c8.ld -Wl,-Map=$(BUILDDIR)/$(TARGET).map,--cref -Wl,--gc-sections -flto
+LDFLAGS += -Tstm32f103c8.ld -Wl,-Map=$(BUILDDIR)/$(TARGET).map,--cref
+LDFLAGS += -Wl,--gc-sections -flto
 LDLIBS = -lc -lopencm3_stm32f1
 
 .PHONY: all

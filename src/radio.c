@@ -33,7 +33,7 @@ struct lr1121_pa_config radio_pa_config = {
 };
 
 /* see docs/e80-900m2213s-user-manual.pdf
-    Chapter 3 Mechanical Dimensions and Pin Definition */
+   Chapter 3 Mechanical Dimensions and Pin Definition */
 static struct lr1121_dio_rf_switch_config rf_switch_config = {
     .enable = LR1121_RFSW0 | LR1121_RFSW1,
     .standby = 0x00,
