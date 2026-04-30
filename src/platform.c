@@ -1,7 +1,10 @@
 #include "platform.h"
 
+#include "serial.h"
+
 #include <libopencm3/cm3/nvic.h>
 #include <libopencm3/cm3/systick.h>
+#include <libopencm3/stm32/dma.h>
 #include <libopencm3/stm32/exti.h>
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/stm32/rcc.h>
@@ -18,6 +21,9 @@ void handle_lr1121_irq(void);
 void usart1_isr(void);
 void handle_uart_rx(void);
 
+void dma1_channel4_isr(void);
+void handle_uart_dma_complete(void);
+
 void platform_setup(void)
 {
     rcc_clock_setup_pll(&rcc_hsi_configs[RCC_CLOCK_HSI_64MHZ]);
@@ -27,6 +33,7 @@ void platform_setup(void)
     rcc_periph_clock_enable(RCC_AFIO);
     rcc_periph_clock_enable(RCC_USART1);
     rcc_periph_clock_enable(RCC_SPI1);
+    rcc_periph_clock_enable(RCC_DMA1);
 
     systick_set_clocksource(STK_CSR_CLKSOURCE_AHB);
     systick_set_reload(rcc_ahb_frequency / 1000 - 1);
@@ -62,7 +69,15 @@ void platform_setup(void)
     usart_set_baudrate(USART1, 115200);
     usart_set_mode(USART1, USART_MODE_TX_RX);
     usart_enable_rx_interrupt(USART1);
+    usart_enable_tx_dma(USART1);
     usart_enable(USART1);
+
+    dma_set_peripheral_address(DMA1, DMA_CHANNEL4, USART1_DR);
+    dma_set_memory_address(DMA1, DMA_CHANNEL4, txbuffer);
+    dma_set_priority(DMA1, DMA_CHANNEL4, DMA_CCR_PL_VERY_HIGH);
+    dma_enable_memory_increment_mode(DMA1, DMA_CHANNEL4);
+    dma_set_read_from_memory(DMA1, DMA_CHANNEL4);
+    dma_enable_transfer_complete_interrupt(DMA1, DMA_CHANNEL4);
 
     nvic_set_priority(NVIC_USART1_IRQ, 0);
     nvic_enable_irq(NVIC_USART1_IRQ);
@@ -98,5 +113,15 @@ void usart1_isr(void)
 }
 
 __attribute__((weak)) void handle_uart_rx(void)
+{
+}
+
+void dma1_channel4_isr(void)
+{
+    dma_clear_interrupt_flags(DMA1, DMA_CHANNEL4, DMA_IFCR_CTCIF4);
+    handle_uart_dma_complete();
+}
+
+__attribute__((weak)) void handle_uart_dma_complete(void)
 {
 }

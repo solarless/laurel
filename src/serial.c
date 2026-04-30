@@ -4,6 +4,7 @@
 #include "platform.h"
 #include "radio.h"
 
+#include <libopencm3/stm32/dma.h>
 #include <libopencm3/stm32/usart.h>
 
 #include <stdbool.h>
@@ -23,13 +24,14 @@ static enum {
     STATE_ESCAPE,
 } state;
 
-static uint8_t txbuffer[BUFFER_SIZE];
+uint8_t txbuffer[BUFFER_SIZE];
 static uint8_t rxdata[BUFFER_SIZE];
 static uint8_t rxcommand;
 static uint16_t rxsize;
 static bool rxdone;
 
 void handle_uart_rx(void);
+void handle_uart_dma_complete(void);
 
 void serial_send(uint8_t *data, uint16_t length)
 {
@@ -48,6 +50,9 @@ void serial_send(uint8_t *data, uint16_t length)
         }
     }
     txbuffer[p++] = FEND;
+
+    dma_set_number_of_data(CH340X_DMA, CH340X_DMA_CHANNEL, p);
+    dma_enable_channel(CH340X_DMA, CH340X_DMA_CHANNEL);
 
     for (int i = 0; i < p; i++)
         usart_send_blocking(CH340X_USART, txbuffer[i]);
@@ -103,4 +108,9 @@ void handle_uart_rx(void)
         }
         break;
     }
+}
+
+void handle_uart_dma_complete(void)
+{
+    dma_disable_channel(CH340X_DMA, CH340X_DMA_CHANNEL);
 }

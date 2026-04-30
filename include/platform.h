@@ -1,5 +1,6 @@
 #pragma once
 
+#include <libopencm3/stm32/dma.h>
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/stm32/spi.h>
 #include <libopencm3/stm32/usart.h>
@@ -30,6 +31,8 @@
 #define CH340X_RXD_PORT (GPIOA)
 #define CH340X_RXD_PIN (GPIO9)
 
+#define CH340X_DMA (DMA1)
+#define CH340X_DMA_CHANNEL (DMA_CHANNEL4)
 #define CH340X_USART (USART1)
 
 /* ======== LR1121 ======== */

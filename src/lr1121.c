@@ -149,9 +149,8 @@ void lr1121_clear_irq(uint32_t clear, uint32_t *pending)
     buffer[0x00] = spi_xfer(LR1121_SPI, (clear & 0x000000ff) >> 0);
     set_nss_high();
 
-    if (pending) {
+    if (pending)
         *pending = *(uint32_t *)buffer;
-    }
 }
 
 void lr1121_set_tcxo_mode(uint8_t tune, uint32_t timeout)
